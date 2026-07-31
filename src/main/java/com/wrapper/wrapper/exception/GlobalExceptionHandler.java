@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse<>(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "ex.getMessage()",
+                        ex.getMessage(),
                         null));
     }
 

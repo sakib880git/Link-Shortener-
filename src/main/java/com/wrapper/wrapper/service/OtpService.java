@@ -1,10 +1,15 @@
 package com.wrapper.wrapper.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.wrapper.wrapper.entity.EmailOtp;
+import com.wrapper.wrapper.exception.ApiException;
 import com.wrapper.wrapper.repository.EmailOtpRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -15,43 +20,44 @@ public class OtpService {
 
     private final EmailOtpRepository otpRepository;
     private final EmailService emailService;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public void sendOtp(String email) {
+    // public void sendOtp(String email) {
 
-        String otp = String.valueOf((int)((Math.random() * 900000) + 100000));
+    // String otp = String.valueOf((int)((Math.random() * 900000) + 100000));
 
-        EmailOtp entity = new EmailOtp();
+    // EmailOtp entity = new EmailOtp();
 
-        entity.setEmail(email);
-        entity.setOtp(otp);
-        entity.setVerified(false);
-        entity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+    // entity.setEmail(email);
+    // entity.setOtp(otp);
+    // entity.setVerified(false);
+    // entity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
 
-        otpRepository.save(entity);
+    // otpRepository.save(entity);
 
-        emailService.sendOtp(email, otp);
-    }
+    // emailService.sendOtp(email, otp);
+    // }
 
-    public boolean verifyOtp(String email, String otp) {
+    // public boolean verifyOtp(String email, String otp) {
 
-        EmailOtp entity = otpRepository
-                .findTopByEmailOrderByIdDesc(email)
-                .orElseThrow(() -> new RuntimeException("OTP not found"));
+    // EmailOtp entity = otpRepository
+    // .findTopByEmailOrderByIdDesc(email)
+    // .orElseThrow(() -> new RuntimeException("OTP not found"));
 
-        if (entity.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("OTP expired");
-        }
+    // if (entity.getExpiryTime().isBefore(LocalDateTime.now())) {
+    // throw new RuntimeException("OTP expired");
+    // }
 
-        if (!entity.getOtp().equals(otp)) {
-            throw new RuntimeException("Invalid OTP");
-        }
+    // if (!entity.getOtp().equals(otp)) {
+    // throw new RuntimeException("Invalid OTP");
+    // }
 
-        entity.setVerified(true);
+    // entity.setVerified(true);
 
-        otpRepository.save(entity);
+    // otpRepository.save(entity);
 
-        return true;
-    }
+    // return true;
+    // }
 
     public boolean isVerified(String email) {
 
@@ -59,5 +65,48 @@ public class OtpService {
                 .findTopByEmailOrderByIdDesc(email)
                 .map(EmailOtp::isVerified)
                 .orElse(false);
+    }
+
+    public void sendOtp(String email) {
+
+        String key = "OTP" + email;
+
+        Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+
+        if (ttl != null && ttl > 0) {
+
+            long minutes = ttl / 60;
+            long seconds = ttl % 60;
+
+            throw new ApiException(
+                    String.format(
+                            "OTP already sent. Please try again in %d minute(s) %d second(s).",
+                            minutes,
+                            seconds));
+        }
+
+        String otp = String.format("%06d",
+                ThreadLocalRandom.current().nextInt(100000, 1000000));
+
+        redisTemplate.opsForValue()
+                .set(key, otp, Duration.ofMinutes(5));
+
+        emailService.sendOtp(email, otp);
+    }
+
+    public void verifyOtp(String email, String otp) {
+
+        String storedOtp = redisTemplate.opsForValue()
+                .get("OTP:" + email);
+
+        if (storedOtp == null) {
+            throw new ApiException("OTP expired");
+        }
+
+        if (!storedOtp.equals(otp)) {
+            throw new ApiException("Invalid OTP");
+        }
+
+        redisTemplate.delete("OTP:" + email);
     }
 }

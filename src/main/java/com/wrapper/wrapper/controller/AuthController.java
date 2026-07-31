@@ -36,17 +36,17 @@ public class AuthController {
                         null));
     }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<Object>> verifyOtp(@RequestBody VerifyOtpRequest request) {
+//     @PostMapping("/verify-otp")
+//     public ResponseEntity<ApiResponse<Object>> verifyOtp(@RequestBody VerifyOtpRequest request) {
 
-        otpService.verifyOtp(request.getEmail(), request.getOtp());
+//         otpService.verifyOtp(request.getEmail(), request.getOtp());
 
-        return ResponseEntity.ok(
-        new ApiResponse<>(200,
-                "OTP verified successfully",
-                null)
-);
-    }
+//         return ResponseEntity.ok(
+//         new ApiResponse<>(200,
+//                 "OTP verified successfully",
+//                 null)
+// );
+//     }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Object>> register(@RequestBody RegisterRequest request) {
