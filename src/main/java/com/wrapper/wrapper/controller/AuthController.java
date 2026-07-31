@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wrapper.wrapper.dto.ApiResponse;
 import com.wrapper.wrapper.dto.RegisterRequest;
 import com.wrapper.wrapper.dto.SendOtpRequest;
 import com.wrapper.wrapper.dto.VerifyOtpRequest;
@@ -22,27 +23,40 @@ public class AuthController {
     private final OtpService otpService;
     private final AuthService authService;
 
+    
+
     @PostMapping("/send-otp")
-    public ResponseEntity<String> sendOtp(@RequestBody SendOtpRequest request) {
+    public ResponseEntity<ApiResponse<Object>> sendOtp(@RequestBody SendOtpRequest request) {
 
         otpService.sendOtp(request.getEmail());
 
-        return ResponseEntity.ok("OTP sent successfully");
+        return ResponseEntity.ok(
+                new ApiResponse<>(200,
+                        "OTP sent successfully",
+                        null));
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOtp(@RequestBody VerifyOtpRequest request) {
+    public ResponseEntity<ApiResponse<Object>> verifyOtp(@RequestBody VerifyOtpRequest request) {
 
         otpService.verifyOtp(request.getEmail(), request.getOtp());
 
-        return ResponseEntity.ok("OTP verified successfully");
+        return ResponseEntity.ok(
+        new ApiResponse<>(200,
+                "OTP verified successfully",
+                null)
+);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<Object>> register(@RequestBody RegisterRequest request) {
 
         authService.register(request);
 
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok(
+        new ApiResponse<>(200,
+                "User registered successfully",
+                null)
+);
     }
 }
