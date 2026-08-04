@@ -91,7 +91,8 @@ public class OtpService {
         redisTemplate.opsForValue()
                 .set(key, otp, Duration.ofMinutes(5));
 
-        emailService.sendOtp(email, otp);
+        System.out.println("OTP : " + otp);
+        // emailService.sendOtp(email, otp);
     }
 
     public void verifyOtp(String email, String otp) {
