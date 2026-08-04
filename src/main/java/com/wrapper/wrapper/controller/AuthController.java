@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wrapper.wrapper.dto.ApiResponse;
+import com.wrapper.wrapper.dto.ChangePasswordRequest;
+import com.wrapper.wrapper.dto.ForgotPasswordRequest;
 import com.wrapper.wrapper.dto.RegisterRequest;
 import com.wrapper.wrapper.dto.SendOtpRequest;
 import com.wrapper.wrapper.dto.VerifyOtpRequest;
@@ -29,23 +31,13 @@ public class AuthController {
 
     private final RateLimitService rateLimitService;
 
-    private final GetIP getIp;
-    // private String getClientIp(HttpServletRequest request) {
-
-    //     String forwarded = request.getHeader("X-Forwarded-For");
-
-    //     if (forwarded != null && !forwarded.isBlank()) {
-    //         return forwarded.split(",")[0].trim();
-    //     }
-
-    //     return request.getRemoteAddr();
-    // }
+    // private final GetIP getIp;
 
     @PostMapping("/send-otp")
     public ResponseEntity<ApiResponse<Object>> sendOtp(@RequestBody SendOtpRequest request,
             HttpServletRequest httpRequest) {
 
-        String ip = getIp.getClientIp(httpRequest);
+        String ip = GetIP.getClientIp(httpRequest);
 
         rateLimitService.checkIpLimit(ip);
 
@@ -61,7 +53,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Object>> register(@RequestBody RegisterRequest request,
             HttpServletRequest httpRequest) {
 
-        String ip = getIp.getClientIp(httpRequest);
+        String ip = GetIP.getClientIp(httpRequest);
 
         rateLimitService.checkIpLimit(ip);
 
@@ -72,4 +64,41 @@ public class AuthController {
                         "User registered successfully",
                         null));
     }
+
+    @PostMapping("/forgot-password/send-otp")
+    public ResponseEntity<ApiResponse<Object>> forgotPasswordOtp(
+            @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        String ip = GetIP.getClientIp(httpRequest);
+
+        rateLimitService.checkIpLimit(ip);
+
+        authService.sendForgotPasswordOtp(request.getEmail());
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        200,
+                        "OTP sent successfully.",
+                        null));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Object>> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        String ip = GetIP.getClientIp(httpRequest);
+
+        rateLimitService.checkIpLimit(ip);
+
+        authService.changePassword(request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        200,
+                        "Password changed successfully.",
+                        null));
+    }
+
 }
