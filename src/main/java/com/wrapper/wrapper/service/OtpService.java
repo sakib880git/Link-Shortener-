@@ -22,42 +22,6 @@ public class OtpService {
     private final EmailService emailService;
     private final RedisTemplate<String, String> redisTemplate;
 
-    // public void sendOtp(String email) {
-
-    // String otp = String.valueOf((int)((Math.random() * 900000) + 100000));
-
-    // EmailOtp entity = new EmailOtp();
-
-    // entity.setEmail(email);
-    // entity.setOtp(otp);
-    // entity.setVerified(false);
-    // entity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
-
-    // otpRepository.save(entity);
-
-    // emailService.sendOtp(email, otp);
-    // }
-
-    // public boolean verifyOtp(String email, String otp) {
-
-    // EmailOtp entity = otpRepository
-    // .findTopByEmailOrderByIdDesc(email)
-    // .orElseThrow(() -> new RuntimeException("OTP not found"));
-
-    // if (entity.getExpiryTime().isBefore(LocalDateTime.now())) {
-    // throw new RuntimeException("OTP expired");
-    // }
-
-    // if (!entity.getOtp().equals(otp)) {
-    // throw new RuntimeException("Invalid OTP");
-    // }
-
-    // entity.setVerified(true);
-
-    // otpRepository.save(entity);
-
-    // return true;
-    // }
 
     public boolean isVerified(String email) {
 
@@ -69,7 +33,7 @@ public class OtpService {
 
     public void sendOtp(String email) {
 
-        String key = "OTP" + email;
+        String key = "OTP:" + email;
 
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
 
@@ -99,6 +63,8 @@ public class OtpService {
 
         String storedOtp = redisTemplate.opsForValue()
                 .get("OTP:" + email);
+        
+        System.out.println("extractedOTP : " +  storedOtp);
 
         if (storedOtp == null) {
             throw new ApiException("OTP expired");
@@ -111,3 +77,4 @@ public class OtpService {
         redisTemplate.delete("OTP:" + email);
     }
 }
+

@@ -2,11 +2,12 @@ package com.wrapper.wrapper.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
+public final class GetIP {
 
-public class GetIP {
+    private GetIP() {
+    }
 
-    public  String getClientIp(HttpServletRequest request) {
+    public static String getClientIp(HttpServletRequest request) {
 
         String forwarded = request.getHeader("X-Forwarded-For");
 
@@ -16,5 +17,4 @@ public class GetIP {
 
         return request.getRemoteAddr();
     }
-    
 }

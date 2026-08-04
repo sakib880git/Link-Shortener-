@@ -5,8 +5,10 @@ import java.time.LocalDateTime;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.wrapper.wrapper.dto.ChangePasswordRequest;
 import com.wrapper.wrapper.dto.RegisterRequest;
 import com.wrapper.wrapper.entity.User;
+import com.wrapper.wrapper.exception.ApiException;
 import com.wrapper.wrapper.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,41 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEnabled(true);
         user.setCreatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+    }
+
+    public void sendForgotPasswordOtp(String email) {
+
+        if (!userRepository.existsByEmail(email)) {
+            throw new ApiException("Email not registered.");
+        }
+
+        otpService.sendOtp(email);
+    }
+
+    public void changePassword(ChangePasswordRequest request) {
+
+        otpService.verifyOtp(
+                request.getEmail(),
+                request.getOtp());
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new ApiException("Passwords do not match.");
+        }
+
+        if (request.getNewPassword().length() < 8 ||
+                request.getNewPassword().length() > 30) {
+
+            throw new ApiException(
+                    "Password must be between 8 and 30 characters.");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ApiException("User not found."));
+
+        user.setPassword(
+                passwordEncoder.encode(request.getNewPassword()));
 
         userRepository.save(user);
     }
