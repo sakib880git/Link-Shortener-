@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wrapper.wrapper.dto.ApiResponse;
 import com.wrapper.wrapper.dto.ChangePasswordRequest;
 import com.wrapper.wrapper.dto.ForgotPasswordRequest;
+import com.wrapper.wrapper.dto.Login;
 import com.wrapper.wrapper.dto.RegisterRequest;
 import com.wrapper.wrapper.dto.SendOtpRequest;
 import com.wrapper.wrapper.dto.VerifyOtpRequest;
@@ -26,79 +27,103 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final OtpService otpService;
-    private final AuthService authService;
+        private final OtpService otpService;
+        private final AuthService authService;
 
-    private final RateLimitService rateLimitService;
+        private final RateLimitService rateLimitService;
 
-    // private final GetIP getIp;
+        // private final GetIP getIp;
 
-    @PostMapping("/send-otp")
-    public ResponseEntity<ApiResponse<Object>> sendOtp(@RequestBody SendOtpRequest request,
-            HttpServletRequest httpRequest) {
+        @PostMapping("/send-otp")
+        public ResponseEntity<ApiResponse<Object>> sendOtp(@RequestBody SendOtpRequest request,
+                        HttpServletRequest httpRequest) {
 
-        String ip = GetIP.getClientIp(httpRequest);
+                String ip = GetIP.getClientIp(httpRequest);
 
-        rateLimitService.checkIpLimit(ip);
+                rateLimitService.checkIpLimit(ip);
 
-        otpService.sendOtp(request.getEmail());
+                otpService.sendOtp(request.getEmail());
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(200,
-                        "OTP sent successfully",
-                        null));
-    }
+                return ResponseEntity.ok(
+                                new ApiResponse<>(200,
+                                                "OTP sent successfully",
+                                                null));
+        }
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Object>> register(@RequestBody RegisterRequest request,
-            HttpServletRequest httpRequest) {
+        @PostMapping("/register")
+        public ResponseEntity<ApiResponse<Object>> register(@RequestBody RegisterRequest request,
+                        HttpServletRequest httpRequest) {
 
-        String ip = GetIP.getClientIp(httpRequest);
+                String ip = GetIP.getClientIp(httpRequest);
 
-        rateLimitService.checkIpLimit(ip);
+                rateLimitService.checkIpLimit(ip);
 
-        authService.register(request);
+                // authService.register(request);
+                String token = authService.register(request);
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(200,
-                        "User registered successfully",
-                        null));
-    }
+                // return ResponseEntity.ok(
+                // new ApiResponse<>(200,
+                // "User registered successfully",
+                // null));
 
-    @PostMapping("/forgot-password/send-otp")
-    public ResponseEntity<ApiResponse<Object>> forgotPasswordOtp(
-            @RequestBody ForgotPasswordRequest request,
-            HttpServletRequest httpRequest) {
+                return ResponseEntity.ok(
+                                new ApiResponse<>(
+                                                200,
+                                                "User registered successfully",
+                                                token));
+        }
 
-        String ip = GetIP.getClientIp(httpRequest);
+        @PostMapping("/forgot-password/send-otp")
+        public ResponseEntity<ApiResponse<Object>> forgotPasswordOtp(
+                        @RequestBody ForgotPasswordRequest request,
+                        HttpServletRequest httpRequest) {
 
-        rateLimitService.checkIpLimit(ip);
+                String ip = GetIP.getClientIp(httpRequest);
 
-        authService.sendForgotPasswordOtp(request.getEmail());
+                rateLimitService.checkIpLimit(ip);
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        200,
-                        "OTP sent successfully.",
-                        null));
-    }
+                authService.sendForgotPasswordOtp(request.getEmail());
 
-    @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<Object>> changePassword(
-            @RequestBody ChangePasswordRequest request,
-            HttpServletRequest httpRequest) {
+                return ResponseEntity.ok(
+                                new ApiResponse<>(
+                                                200,
+                                                "OTP sent successfully.",
+                                                null));
+        }
 
-        String ip = GetIP.getClientIp(httpRequest);
+        @PostMapping("/change-password")
+        public ResponseEntity<ApiResponse<Object>> changePassword(
+                        @RequestBody ChangePasswordRequest request,
+                        HttpServletRequest httpRequest) {
 
-        rateLimitService.checkIpLimit(ip);
+                String ip = GetIP.getClientIp(httpRequest);
 
-        authService.changePassword(request);
+                rateLimitService.checkIpLimit(ip);
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        200,
-                        "Password changed successfully.",
-                        null));
-    }
+                authService.changePassword(request);
+
+                return ResponseEntity.ok(
+                                new ApiResponse<>(
+                                                200,
+                                                "Password changed successfully.",
+                                                null));
+        }
+
+        @PostMapping("/login")
+        public ResponseEntity<ApiResponse<Object>> login(@RequestBody Login login,
+                        HttpServletRequest httpRequest) {
+                String ip = GetIP.getClientIp(httpRequest);
+
+                rateLimitService.checkIpLimit(ip);
+
+                       String token = authService.login(login);
+
+                return ResponseEntity.ok(
+                                new ApiResponse<>(
+                                                200,
+                                                "Login Successfull.",
+                                                token));
+
+        }
 
 }
