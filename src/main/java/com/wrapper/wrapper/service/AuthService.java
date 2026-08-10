@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.wrapper.wrapper.dto.ChangePasswordRequest;
 import com.wrapper.wrapper.dto.RegisterRequest;
+import com.wrapper.wrapper.dto.Login;
 import com.wrapper.wrapper.entity.User;
 import com.wrapper.wrapper.exception.ApiException;
 import com.wrapper.wrapper.repository.UserRepository;
@@ -21,7 +22,9 @@ public class AuthService {
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
 
-    public void register(RegisterRequest request) {
+    private final JwtService jwtService;
+
+    public String register(RegisterRequest request) {
 
         otpService.verifyOtp(
                 request.getEmail(),
@@ -47,6 +50,8 @@ public class AuthService {
         user.setCreatedAt(LocalDateTime.now());
 
         userRepository.save(user);
+
+        return jwtService.generateToken(user.getEmail());
     }
 
     public void sendForgotPasswordOtp(String email) {
@@ -82,5 +87,20 @@ public class AuthService {
                 passwordEncoder.encode(request.getNewPassword()));
 
         userRepository.save(user);
+    }
+
+    public String login(Login login) {
+        User user = userRepository.findByEmail(login.getEmail())
+                .orElseThrow(() -> new ApiException("Invalid email or password."));
+
+        boolean isMatch = passwordEncoder.matches(
+                login.getPassword(),
+                user.getPassword());
+
+        if( !isMatch){
+             throw new ApiException("Invalid email or password.");
+        }
+
+        return jwtService.generateToken(user.getEmail());
     }
 }
